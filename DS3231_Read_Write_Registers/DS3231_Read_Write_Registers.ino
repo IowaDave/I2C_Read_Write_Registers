@@ -4,7 +4,7 @@
  * All Rights Reserved
  * 
  * Read data from the hardware registers of a DS3231 Real Time Clock, 
- * and write data to it. Use only the "Wire" software library of the Arduino IDE, 
+ * and write data to it. Use only the "twi" software library of the Arduino IDE, 
  * but not any device-specific library.
  *
  * Display a register's value as a string of eight characters, '0' or '1'.
@@ -23,10 +23,10 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <Wire.h>
+#include "twi.h"
 
 /*
- * Buffer and function for converting an 8-bit byte
+ * Early work: Buffer and function for converting an 8-bit byte
  * into a string of eight characters, '0' or '1'.
  * Because sprintf() does not perform bitwise formatting.
  * 
@@ -46,15 +46,18 @@
  */
 
 uint8_t getRegister ( uint8_t regAddress ) {
-  uint8_t regValue;
-  Wire.beginTransmission(0x68); // DS3231 I2C address
-  Wire.write(regAddress);
-  Wire.endTransmission();
-  Wire.requestFrom(0x68, 1); // ask for one byte
-  while (Wire.available()) {
-    regValue = Wire.read();
-  }
-  return regValue;
+  uint8_t regBuffer[1]; // yes, one byte only
+  regBuffer[0] = regAddress;
+  twi_writeTo(0x68, regBuffer, 1, true, false); // blocking, don't send stop
+  twi_readFrom(0x68, regBuffer, 1, true); // always blocking, send stop
+  return regBuffer[0];
+}
+
+void setRegister (uint8_t regAddress, uint8_t valueToSet) {
+  uint8_t regBuffer[2]; // yes, two bytes
+  regBuffer[0] = regAddress;
+  regBuffer[1] = valueToSet;
+  twi_writeTo(0x68, regBuffer, 2, true, true); // blocking, send stop
 }
 
 /*
@@ -94,7 +97,7 @@ void setup() {
   // put your setup code here, to run once:
 
   Serial.begin (115200);
-  Wire.begin();
+  twi_init();
   
   Serial.println("\n\n  DS3231 Registers\n");
   
@@ -168,12 +171,7 @@ void setup() {
    * newMin = ESP.random() % 12; // 0 .. 11
    */
 
- 
-  // set the new value
-  Wire.beginTransmission(0x68);
-  Wire.write(0x0b);
-  Wire.write(newMin);
-  Wire.endTransmission();
+  setRegister (0x0b, newMin);
 
   displayRegister ("New Alarm 2 minutes: ",0x0b);
 //  Serial.println();
