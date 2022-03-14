@@ -7,7 +7,8 @@
  * and write data to it. Use only the "twi" software library of the Arduino IDE, 
  * but not any device-specific library.
  *
- * Display a register's value as a string of eight characters, '0' or '1'.
+ * Display a register's value as individual bits,
+ * represented as a string of eight characters, '0' or '1'.
  *
  * LICENSE
  *
@@ -45,32 +46,55 @@
  * }
  */
 
-uint8_t getRegister ( uint8_t regAddress ) {
-  uint8_t regBuffer[1]; // yes, one byte only
-  regBuffer[0] = regAddress;
-  twi_writeTo(0x68, regBuffer, 1, true, false); // blocking, don't send stop
-  twi_readFrom(0x68, regBuffer, 1, true); // always blocking, send stop
+
+/*
+ * Fetch a one-byte value from a register of an I2C peripheral
+ * Parameters: i2c address, register number
+ * Returns: the value obtained from the peripheral
+ * Asserts: i2c address and register number are valid (not checked)
+ * Side effects: none
+ */
+uint8_t getRegister ( uint8_t i2cAddress, uint8_t registerAddress ) {
+  uint8_t regBuffer[1]; // one byte only, used both to send and to receive
+  regBuffer[0] = registerAddress;
+  // tell device which register to read from
+  twi_writeTo(i2cAddress, regBuffer, 1, true, false); // true=blocking, false=don't send stop
+  // tell device to send the value in that register
+  twi_readFrom(i2cAddress, regBuffer, 1, true); // always blocking, true=send stop
   return regBuffer[0];
 }
 
-void setRegister (uint8_t regAddress, uint8_t valueToSet) {
-  uint8_t regBuffer[2]; // yes, two bytes
-  regBuffer[0] = regAddress;
+/*
+ * Send a one-byte value to be be stored in a register of an I2C peripheral.
+ * Parameters: i2c address, register number, the byte to be stored
+ * Returns: nothing
+ * Asserts: the i2c and register addresses are valid (not checked)
+ * Side effects: none
+ */
+void setRegister (uint8_t i2cAddress, uint8_t registerAddress, uint8_t valueToSet) {
+  uint8_t regBuffer[2]; // two bytes needed for send
+  regBuffer[0] = registerAddress;
   regBuffer[1] = valueToSet;
-  twi_writeTo(0x68, regBuffer, 2, true, true); // blocking, send stop
+  twi_writeTo(i2cAddress, regBuffer, 2, true, true); // true=blocking, true=send stop
 }
 
 /*
  * Display the value of a given register,
  * preceded by a label string,
- * and return that value to the caller
+ * and return that value to the caller.
+ * Parameters: i2c address, label string, register number.
+ * Returns: the value obtrained from the register.
+ * Asserts: i2c and register addresses are valid (not checked)
+ * Side effects: none
  */
-uint8_t displayRegister (char * label, uint8_t registerAddress) {
+uint8_t displayRegister (uint8_t i2cAddress, char * label, uint8_t registerAddress) {
   // get the value from the register
-  uint8_t regValue = getRegister( registerAddress );
+  uint8_t regValue = getRegister( i2cAddress, registerAddress );
   // save it to be returned
   uint8_t returnValue = regValue;
   // initialize a string for display
+  // Note, it uses a C-type string, which means
+  // the code writer must ensure sufficient size.
   char regString[] = "  :                          ";
   // insert the register address 0 .. 99 into the string
   // ones digit
@@ -93,6 +117,8 @@ uint8_t displayRegister (char * label, uint8_t registerAddress) {
   return returnValue;
 }
 
+const int DS3231_address = 0x68;
+
 void setup() {
   // put your setup code here, to run once:
 
@@ -101,84 +127,80 @@ void setup() {
   
   Serial.println("\n\n  DS3231 Registers\n");
   
-  displayRegister ("Time seconds: ", 0x00);
+  displayRegister (DS3231_address, "Time seconds: ", 0x00);
 //  Serial.println();
 
-  displayRegister ("Time minutes: ", 0x01);
+  displayRegister (DS3231_address, "Time minutes: ", 0x01);
 //  Serial.println();
 
-  displayRegister ("Time hours: ", 0x02);
+  displayRegister (DS3231_address, "Time hours: ", 0x02);
 //  Serial.println();
 
-  displayRegister ("Time day: ", 0x03);
+  displayRegister (DS3231_address, "Time day: ", 0x03);
 //  Serial.println();
 
-  displayRegister ("Time date: ", 0x04);
+  displayRegister (DS3231_address, "Time date: ", 0x04);
 //  Serial.println();
 
-  displayRegister ("Time month: ", 0x05);
+  displayRegister (DS3231_address, "Time month: ", 0x05);
 //  Serial.println();
 
-  displayRegister ("Time Year:", 0x06);
+  displayRegister (DS3231_address, "Time Year:", 0x06);
 //  Serial.println();
   
-  displayRegister ("Alarm 1 seconds: ", 0x07);
+  displayRegister (DS3231_address, "Alarm 1 seconds: ", 0x07);
 //  Serial.println();
 
-  displayRegister ("Alarm 1 minutes: ", 0x08);
+  displayRegister (DS3231_address, "Alarm 1 minutes: ", 0x08);
 //  Serial.println();
 
-  displayRegister ("Alarm 1 hour: ", 0x09);
+  displayRegister (DS3231_address, "Alarm 1 hour: ", 0x09);
 //  Serial.println();
 
-  displayRegister ("Alarm 1 day/date: ", 0x0a);
+  displayRegister (DS3231_address, "Alarm 1 day/date: ", 0x0a);
 //  Serial.println();
 
   uint8_t originalA2Minutes 
-  = displayRegister ("Alarm 2 minutes: ", 0x0b);
+  = displayRegister (DS3231_address, "Alarm 2 minutes: ", 0x0b);
 //  Serial.println();
 
-  displayRegister ("Alarm 2 hour: ", 0x0c);
+  displayRegister (DS3231_address, "Alarm 2 hour: ", 0x0c);
 //  Serial.println();
 
-  displayRegister ("Alarm 2 day/date: ", 0x0d);
+  displayRegister (DS3231_address, "Alarm 2 day/date: ", 0x0d);
 //  Serial.println();
 
-  displayRegister ("Control 0x0e: ", 0x0e);
+  displayRegister (DS3231_address, "Control 0x0e: ", 0x0e);
 //  Serial.println();
 
-  displayRegister ("Control status 0x0f: ", 0x0f);
+  displayRegister (DS3231_address, "Control status 0x0f: ", 0x0f);
 //  Serial.println();
 
-  displayRegister ("Temperature MSB: ", 0x11);
+  displayRegister (DS3231_address, "Temperature MSB: ", 0x11);
 //  Serial.println();
 
-  displayRegister ("Temperature LSB: ",0x12);
+  displayRegister (DS3231_address, "Temperature LSB: ",0x12);
 //  Serial.println();
 
 
   // randomly set new value for Alarm 2 minutes
-  uint8_t newMin;
+  uint8_t newMin; 
   
-  /* Arduino Method*/
+  /* Tested with AVR-based Arduino Nano */
+
   // seed the rng
   randomSeed(analogRead(A0));
-  // get a new, different value
+  // get a new, different value, 0..11 inclusive
   while ((newMin = (uint8_t) random(0,12)) 
         == originalA2Minutes) { } // try again
-  /*
-   * ESP 8266 method
-   * newMin = ESP.random() % 12; // 0 .. 11
-   */
 
-  setRegister (0x0b, newMin);
+  setRegister (DS3231_address, 0x0b, newMin);
 
-  displayRegister ("New Alarm 2 minutes: ",0x0b);
+  displayRegister (DS3231_address, "New Alarm 2 minutes: ",0x0b);
 //  Serial.println();
   
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-
+  // nothing happens in the loop
 }
