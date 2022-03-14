@@ -16,15 +16,31 @@ For example, the bits representing the "Minutes" value of the current time can b
 
 ![Bits from Register 1](https://github.com/IowaDave/I2C_Read_Write_Registers/blob/main/Images/Reg_1_Time_Minutes.png)<br>**Figure 1: Bits in Register 1**
 
-The "Minutes" bits are arranged in a special way, called Binary Coded Decimal. Each "nybble" of 4 bits forms one digit of a two-digit value. In the example shown above, the "high nybble", 0010, represents 2 and the "low nybble", 1001, represents 9. Combined, they encode the value 29. This image was captured at 29 minutes past the hour. 
+The "Minutes" bits are arranged in a special way, called Binary Coded Decimal. Each "nybble" of 4 bits forms one digit of a two-digit value. In the example shown above, the "high nybble", 0010, represents 2 and the "low nybble", 1001, represents 9. Combined, they encode the value 29. The image in Figure 1 was captured at 29 minutes past the hour. 
 
-You can see the exact arrangement of Register 1 in the [Maxim Datasheet for DS3231](https://datasheets.maximintegrated.com/en/ds/DS3231.pdf), page 11. 
-
-The datasheet details all 18 of the accessible registers on pages 11-15. Having the datasheet in hand, plus a way to reveal the individual bits of a register, you can see exactly what's going on in there.
+The [Maxim Datasheet for DS3231](https://datasheets.maximintegrated.com/en/ds/DS3231.pdf) details the arrangement of the bits in all 18 of the accessible registers on pages 11-15. Having the datasheet in hand, plus a way to reveal the individual bits of a register, you can see exactly what's going on in there.
 
 Frequently, the bits in a register provide more than one piece of information. Continuing with the DS3231, the bits representing the "Hour" value of the current time can be read from Register 2. These bits include not only the number but also information about whether it is in 12- or 24-hour format, and if 12-hour, then whether it is AM or PM.
 
-Bits in a register might control how the peripheral operates. For example, the DS3231 provides two Alarms. Enabling or disabling the alarms is done by writing 1 or 0, respectively, to certain bits in Register 14. The DS3231 can generate interrupts to trigger actions on your Arduino. Other bits that your code can manipulate in Registers 14 and 15 control how the DS3231 performs interrupts.
+![Bits from Register 2](https://github.com/IowaDave/I2C_Read_Write_Registers/blob/main/Images/Reg_2_Time_Hour.png)<br>**Figure 2: Bits in Register 2**
+
+Referring to the datasheet, we examine bits 6, 5, and 4 in Figure 2. Bit 6 is the 12/24-hour format flag. It is 0, which means the DS3231 is operating in 24-hour mode. Bit 5 is the "20" bit when in 24-hour mode. It is 0, which means the hour is between 0 and 19. Bit 4 is the "10" bit. It is 1, which means we add 10 to the number in the low nybble. That value is 0010, representing 2. Thus the hour is 10 + 2 = 12. 
+
+Combining Register 2 with Register 1, the DS3231 tells us that the time is 12:29, in 24-hour format, meaning 12:29 p.m.
+
+Bits in a register might control how the peripheral operates. For example, the DS3231 provides two Alarms. Enabling or disabling the alarms is done by writing 1 or 0, respectively, to certain bits in Register 14, the "Control" register:
+
+![Bits from Register 14](https://github.com/IowaDave/I2C_Read_Write_Registers/blob/main/Images/Reg_14_Control.png)<br>**Figure 3: Bits in Register 14**
+
+Bits 1 and 0, the least-significant bits, at the right-hand side of Figure 3, are the alarm-enable bits for alarms 2 and 1, respectively. Both of them have the value, 1, meaning the alarms are "set", or enabled. Writing a 0 to those bits would disable the respective alarms.
+
+The DS3231 can generate interrupts to trigger actions on your Arduino. Other bits that your code can manipulate in Registers 14 and 15 control how the DS3231 performs interrupts.
+
+![Bits from Register 15](https://github.com/IowaDave/I2C_Read_Write_Registers/blob/main/Images/Reg_15_Control:Flags.png)<br>**Figure 4: Bits in Register 15**
+
+Bits 1 and 0 in Register 15 are the alarm flags. They indicate the occurrence of Alarm 2 and Alarm 1, respectively. They are both 0 in Figure 4, which means no alarm event has happened. 
+
+Registers 7 through 15 all participate in regulating the alarm features of the DS3231. Your code can set times and manage the alarms by writing properly-formatted bytes to the registers. The example code demonstrates changing the "Minutes" register for Alarm 2. 
 
 As I write this in March, 2022, I have just begun to communicate with I2C devices by reading and writing the actual bits in registers directly. In the past, I felt limited to using third-party libraries. Too often, I'd feel disappointed with some aspect of a library. 
 
