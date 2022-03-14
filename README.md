@@ -10,13 +10,17 @@ The code in the example Arduino project, DS3231_Read_Write_Registers, includes s
 
 Simple? Really? OK, what about those bytes? Hmm... yes, details matter. More on that a little farther down.
 
-The memory locations of an I2C peripheral are called "registers." Registers are identified by numbers. One register can store one byte = 8 bits of information. For example, the bits representing the "Minutes" value of the current time can be read from Register 1 of the DS3231.
+The memory locations of an I2C peripheral are called "registers." Registers are identified by numbers. One register can store one byte = 8 bits of information. The example code demonstrates a function designed to display a register's bits as a string of 1s and 0s.
 
-The "Minutes" bits are arranged in a special way, called Binary Coded Decimal. You can see the exact arrangement in the [Maxim Datasheet for DS3231](https://datasheets.maximintegrated.com/en/ds/DS3231.pdf), page 11. 
+For example, the bits representing the "Minutes" value of the current time can be read from Register 1 of the DS3231.
 
-The datasheet details all 17 of the accessible registers. Having the datasheet in hand, a close look at the individual bits of a register can aid understanding. The example code demonstrates a function designed to display a register's bits as a string of 1s and 0s.
+![Bits from Register 1](https://github.com/IowaDave/I2C_Read_Write_Registers/blob/main/Images/Reg_1_Time_Minutes.png)
 
-Now you can see exactly what's going on in there.
+The "Minutes" bits are arranged in a special way, called Binary Coded Decimal. Each "nybble" of 4 bits forms one digit of a two-digit value. In the example shown above, the "high nybble", 0010, represents 2 and the "low nybble", 1001, represents 9. Combined, they encode the value 29. This image was captured at 29 minutes past the hour. 
+
+You can see the exact arrangement of Register 1 in the [Maxim Datasheet for DS3231](https://datasheets.maximintegrated.com/en/ds/DS3231.pdf), page 11. 
+
+The datasheet details all 18 of the accessible registers on pages 11-15. Having the datasheet in hand, plus a way to reveal the individual bits of a register, you can see exactly what's going on in there.
 
 Frequently, the bits in a register provide more than one piece of information. Continuing with the DS3231, the bits representing the "Hour" value of the current time can be read from Register 2. These bits include not only the number but also information about whether it is in 12- or 24-hour format, and if 12-hour, then whether it is AM or PM.
 
