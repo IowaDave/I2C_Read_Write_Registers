@@ -14,7 +14,7 @@ The memory locations of an I2C peripheral are called "registers." Registers are 
 
 For example, the bits representing the "Minutes" value of the current time can be read from Register 1 of the DS3231.
 
-![Bits from Register 1](https://github.com/IowaDave/I2C_Read_Write_Registers/blob/main/Images/Reg_1_Time_Minutes.png)
+![Bits from Register 1](https://github.com/IowaDave/I2C_Read_Write_Registers/blob/main/Images/Reg_1_Time_Minutes.png)<br>**Figure 1: Bits in Register 1**
 
 The "Minutes" bits are arranged in a special way, called Binary Coded Decimal. Each "nybble" of 4 bits forms one digit of a two-digit value. In the example shown above, the "high nybble", 0010, represents 2 and the "low nybble", 1001, represents 9. Combined, they encode the value 29. This image was captured at 29 minutes past the hour. 
 
