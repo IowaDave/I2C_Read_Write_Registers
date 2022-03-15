@@ -51,3 +51,27 @@ By contrast, when I go directly to the registers, I learn to see and to decide w
 Many thanks to Tom Almy and Norman Dunbar for their Arduino books. They showed me the way.
 
 The example project, DS3231_Read_Write_Registers, works with a DS3231 Real Time Clock having the I2C address 0x68. It reads the time and temperature registers, then changes one of them and reads it a second time.
+
+### The Project Board
+
+The DS3231 module used in this project came in one of those 37-Sensors kits. Another I2C module in there was a GY-571 board mounting an MPU-6050 accelerometer and gyroscope.  I installed both modules onto a breadboard, with an I2C connection to a Nano knock-off. 
+
+![Project board showing components](https://github.com/IowaDave/I2C_Read_Write_Registers/blob/main/Images/populated.jpg)<br>**Figure 5: Project board showing components**
+
+The yellow and white wires in Figure 5 carry the I2C SDA and SCL lines from pins A4 and A5 of the Nano. The blue wires are positioned to bring interrupt signals from the devices back to pins 2 and 3, when I choose to enable them. 
+
+The DS3231 module is on the left in Figure 5; the GY-521 is in the center; and the Nano is on the right.
+
+![Project board showing only the wiring](https://github.com/IowaDave/I2C_Read_Write_Registers/blob/main/Images/bareboard.jpg)<br>**Figure 6: Project board wiring**
+
+Figure 6 removes the components to reveal the wiring underneath. There is a pull-up resistor at position 36 on the breadboard. It connects to the AD0 terminal of the GY-521 module, changing its I2C address to 0x69 from the default 0x68. This was necessary because the DS3231 has an I2C address of 0x68 which cannot be changed.
+
+![I2C Bus scan](https://github.com/IowaDave/I2C_Read_Write_Registers/blob/main/Images/I2C_Bus_Scan.png)<br>**Figure 7: I2C Bus scan**
+
+A scan of the I2C bus identifies three attached devices:
+
+ * 0x50 the 24LC32 EEPROM on the DS3231 module
+ * 0x68 the DS3231 Real Time Clock
+ * 0x69 the MPU-6050 gyroscope/accelerometer on the GY-521 module
+
+I look forward to learning my way around the registers on these three devices, one byteful of bits at a time.
